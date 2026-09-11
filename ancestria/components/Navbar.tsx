@@ -1,16 +1,21 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Menu, X, Volume2, VolumeX } from "lucide-react";
+import { Menu, X, Volume2, VolumeX, BookOpen, Scroll, Music } from "lucide-react";
+import Link from "next/link";
+import { soundFx } from "@/lib/soundEffects";
 
 const navItems = [
-  { label: "Home", href: "#home" },
-  { label: "Story", href: "#journey" },
-  { label: "World", href: "#world" },
-  { label: "Characters", href: "#characters" },
-  { label: "Gameplay", href: "#game" },
-  { label: "Culture", href: "#culture" },
-  { label: "News", href: "#news" },
+  { label: "Home", href: "/#home" },
+  { label: "Story", href: "/#journey" },
+  { label: "World", href: "/#world" },
+  { label: "Codex Artefak", href: "/codex" },
+  { label: "Pohon Misi", href: "/quests" },
+  { label: "Musik Batak", href: "/instruments" },
+  { label: "Characters", href: "/#characters" },
+  { label: "Gameplay", href: "/#game" },
+  { label: "Culture", href: "/#culture" },
+  { label: "News", href: "/#news" },
 ];
 
 export default function Navbar() {
@@ -39,6 +44,7 @@ export default function Navbar() {
       }, 150);
     } else {
       try {
+        soundFx.playGong(110);
         const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
         const ctx = new AudioCtx();
         audioCtxRef.current = ctx;
@@ -81,13 +87,16 @@ export default function Navbar() {
           sm:h-18 sm:px-6
           md:h-20 md:px-8
           lg:max-w-7xl lg:px-10
-          ${isOpen ? "bg-black/90 backdrop-blur-xl" : "bg-black/40 backdrop-blur-md border-b border-white/10"}
+          ${isOpen ? "bg-black/90 backdrop-blur-xl" : "bg-black/50 backdrop-blur-md border-b border-white/10"}
         `}
       >
         {/* Logo */}
-        <a
-          href="#home"
-          onClick={closeMenu}
+        <Link
+          href="/"
+          onClick={() => {
+            closeMenu();
+            soundFx.playClick();
+          }}
           className="
             relative z-10 flex items-center gap-2
             text-base font-bold tracking-[0.2em] text-white
@@ -95,25 +104,26 @@ export default function Navbar() {
             md:tracking-[0.25em]
           "
         >
-          <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+          <span className="h-2.5 w-2.5 rounded-full bg-amber-500 animate-pulse shadow-lg shadow-amber-500/50" />
           ANCESTRIA
-        </a>
+        </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden items-center gap-6 md:flex lg:gap-8">
+        <div className="hidden items-center gap-4 lg:gap-6 md:flex">
           {navItems.map((item) => (
-            <a
+            <Link
               key={item.label}
               href={item.href}
+              onClick={() => soundFx.playClick()}
               className="
-                text-xs uppercase tracking-[0.12em] text-white/70
+                text-[11px] uppercase tracking-[0.12em] text-white/70
                 transition duration-300
                 hover:text-amber-400
-                lg:text-xs lg:tracking-[0.15em]
+                lg:text-xs lg:tracking-[0.14em]
               "
             >
               {item.label}
-            </a>
+            </Link>
           ))}
 
           {/* Sound Toggle */}
@@ -130,19 +140,20 @@ export default function Navbar() {
             {isPlayingAudio ? (
               <>
                 <Volume2 size={14} className="text-amber-400 animate-bounce" />
-                <span className="hidden lg:inline text-amber-400">Audio ON</span>
+                <span className="hidden xl:inline text-amber-400">Audio ON</span>
               </>
             ) : (
               <>
                 <VolumeX size={14} />
-                <span className="hidden lg:inline">Audio OFF</span>
+                <span className="hidden xl:inline">Audio OFF</span>
               </>
             )}
           </button>
 
           {/* Play Now CTA */}
-          <a
-            href="#play"
+          <Link
+            href="/#play"
+            onClick={() => soundFx.playClick()}
             className="
               rounded-full
               border border-amber-500/50
@@ -157,7 +168,7 @@ export default function Navbar() {
             "
           >
             Play Demo
-          </a>
+          </Link>
         </div>
 
         {/* Mobile / Tablet Menu Button */}
@@ -175,7 +186,10 @@ export default function Navbar() {
 
           <button
             type="button"
-            onClick={() => setIsOpen(!isOpen)}
+            onClick={() => {
+              setIsOpen(!isOpen);
+              soundFx.playClick();
+            }}
             className="
               relative z-10
               flex h-10 w-10
@@ -204,7 +218,7 @@ export default function Navbar() {
           md:hidden
           ${
             isOpen
-              ? "max-h-[500px] opacity-100"
+              ? "max-h-[600px] opacity-100"
               : "pointer-events-none max-h-0 opacity-0"
           }
         `}
@@ -212,13 +226,13 @@ export default function Navbar() {
         <div className="px-5 py-6 sm:px-6">
           <div className="flex flex-col">
             {navItems.map((item, index) => (
-              <a
+              <Link
                 key={item.label}
                 href={item.href}
                 onClick={closeMenu}
                 className="
                   border-b border-white/10
-                  py-3.5
+                  py-3
                   text-xs uppercase
                   tracking-[0.15em]
                   text-white/70
@@ -230,11 +244,11 @@ export default function Navbar() {
                   0{index + 1}
                 </span>
                 {item.label}
-              </a>
+              </Link>
             ))}
 
-            <a
-              href="#play"
+            <Link
+              href="/#play"
               onClick={closeMenu}
               className="
                 mt-6
@@ -252,7 +266,7 @@ export default function Navbar() {
               "
             >
               Play Demo
-            </a>
+            </Link>
           </div>
         </div>
       </div>

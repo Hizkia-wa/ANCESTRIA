@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Play, Download, Code2, FileText, RefreshCw, Sparkles, CheckCircle } from "lucide-react";
+import { soundFx } from "@/lib/soundEffects";
 
 export default function PlaySection() {
   const [gameState, setGameState] = useState({
@@ -13,10 +14,17 @@ export default function PlaySection() {
     thLevel: 1,
   });
 
+  const [floatingText, setFloatingText] = useState<string | null>(null);
+
   const [logs, setLogs] = useState<string[]>([
     "Selamat datang di Mini-Demo ANCESTRIA! Kamu berperan sebagai Raja Nami di TH Level 1.",
     "Bantu warga mengelola pangan, air, dan kain Ulos untuk meningkatkan kepercayaan desa."
   ]);
+
+  const showFloatingPopup = (text: string) => {
+    setFloatingText(text);
+    setTimeout(() => setFloatingText(null), 1500);
+  };
 
   const addLog = (msg: string) => {
     setLogs((prev) => [msg, ...prev.slice(0, 4)]);
@@ -25,6 +33,7 @@ export default function PlaySection() {
   const farmCrops = () => {
     if (gameState.water < 15) {
       addLog("⚠️ Pasokan air kurang untuk irigasi sawah! Kelola irigasi sungai terlebih dahulu.");
+      soundFx.playClick();
       return;
     }
     setGameState((prev) => ({
@@ -34,6 +43,8 @@ export default function PlaySection() {
       trust: Math.min(100, prev.trust + 2),
     }));
     addLog("🌾 Panen Berhasil! +35 Pangan, -15 Air, +2 Trust Warga.");
+    showFloatingPopup("+35 Pangan! 🌾");
+    soundFx.playDiscoveryChime();
   };
 
   const gatherWood = () => {
@@ -43,6 +54,8 @@ export default function PlaySection() {
       trust: Math.max(0, prev.trust - 2),
     }));
     addLog("🪵 Mengambil Kayu Hutan! +20 Kayu. (Perhatian: Jangan overharvesting).");
+    showFloatingPopup("+20 Kayu! 🪵");
+    soundFx.playClick();
   };
 
   const manageWater = () => {
@@ -52,11 +65,14 @@ export default function PlaySection() {
       trust: Math.min(100, prev.trust + 3),
     }));
     addLog("💧 Irigasi Sungai Diperbaiki! +30 Air Bersih, +3 Trust Warga.");
+    showFloatingPopup("+30 Air Bersih! 💧");
+    soundFx.playClick();
   };
 
   const weaveUlos = () => {
     if (gameState.food < 20) {
       addLog("⚠️ Bahan pangan kurang untuk konsumsi pengrajin tenun!");
+      soundFx.playClick();
       return;
     }
     setGameState((prev) => ({
@@ -66,11 +82,14 @@ export default function PlaySection() {
       trust: Math.min(100, prev.trust + 10),
     }));
     addLog("🧵 Ulos Baru Selesai Ditenun! +1 Ulos, +10 Trust Warga (Cultural Discovery Unlock!).");
+    showFloatingPopup("+1 Kain Ulos & +10 Trust! 🧵");
+    soundFx.playHasapiNote(440);
   };
 
   const upgradeTownHall = () => {
     if (gameState.wood < 40 || gameState.food < 40) {
       addLog("⚠️ Butuh minimal 40 Kayu & 40 Pangan untuk membangun Ruma Bolon TH Level!");
+      soundFx.playClick();
       return;
     }
     setGameState((prev) => ({
@@ -81,11 +100,14 @@ export default function PlaySection() {
       trust: Math.min(100, prev.trust + 15),
     }));
     addLog(`🎉 Pembangunan Sukses! Desa naik ke TH Level ${gameState.thLevel + 1}! +15 Trust Warga.`);
+    showFloatingPopup(`🎉 TH LEVEL ${gameState.thLevel + 1} UNLOCKED!`);
+    soundFx.playGong(110);
   };
 
   const resetDemo = () => {
     setGameState({ food: 50, water: 100, wood: 20, ulos: 1, trust: 75, thLevel: 1 });
     setLogs(["Mini-Demo di-reset. Selamat mencoba strategi pembangunan desa yang baru!"]);
+    soundFx.playClick();
   };
 
   return (
@@ -112,7 +134,14 @@ export default function PlaySection() {
         </div>
 
         {/* Mini-Demo Interactive Box */}
-        <div className="rounded-3xl border border-amber-500/30 bg-[#0c1017] p-6 sm:p-10 shadow-2xl mb-16">
+        <div className="relative rounded-3xl border border-amber-500/30 bg-[#0c1017] p-6 sm:p-10 shadow-2xl mb-16">
+          {/* Animated Floating Resource Gain Popup */}
+          {floatingText && (
+            <div className="absolute -top-6 left-1/2 -translate-x-1/2 rounded-full border border-amber-400 bg-amber-500 px-6 py-2 text-xs font-extrabold text-black shadow-2xl shadow-amber-500/50 animate-bounce z-20">
+              {floatingText}
+            </div>
+          )}
+
           {/* Dashboard Stats Header */}
           <div className="grid grid-cols-2 sm:grid-cols-6 gap-3 mb-8 border-b border-white/10 pb-6">
             <div className="rounded-xl border border-white/10 bg-black/40 p-3 text-center">
@@ -145,7 +174,7 @@ export default function PlaySection() {
           <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5 mb-8">
             <button
               onClick={farmCrops}
-              className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-3 text-xs font-semibold text-emerald-300 hover:bg-emerald-500 hover:text-black transition flex flex-col items-center gap-1"
+              className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-3 text-xs font-semibold text-emerald-300 hover:bg-emerald-500 hover:text-black transition flex flex-col items-center gap-1 transform active:scale-95"
             >
               <span>🌾 Tanam & Panen Padi</span>
               <span className="text-[10px] text-white/50">+35 Pangan (-15 Air)</span>
@@ -153,7 +182,7 @@ export default function PlaySection() {
 
             <button
               onClick={manageWater}
-              className="rounded-xl border border-sky-500/40 bg-sky-500/10 p-3 text-xs font-semibold text-sky-300 hover:bg-sky-500 hover:text-black transition flex flex-col items-center gap-1"
+              className="rounded-xl border border-sky-500/40 bg-sky-500/10 p-3 text-xs font-semibold text-sky-300 hover:bg-sky-500 hover:text-black transition flex flex-col items-center gap-1 transform active:scale-95"
             >
               <span>💧 Kelola Irigasi Sungai</span>
               <span className="text-[10px] text-white/50">+30 Air Bersih</span>
@@ -161,7 +190,7 @@ export default function PlaySection() {
 
             <button
               onClick={gatherWood}
-              className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs font-semibold text-amber-300 hover:bg-amber-500 hover:text-black transition flex flex-col items-center gap-1"
+              className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs font-semibold text-amber-300 hover:bg-amber-500 hover:text-black transition flex flex-col items-center gap-1 transform active:scale-95"
             >
               <span>🪵 Ambil Kayu Hutan</span>
               <span className="text-[10px] text-white/50">+20 Kayu Bangunan</span>
@@ -169,7 +198,7 @@ export default function PlaySection() {
 
             <button
               onClick={weaveUlos}
-              className="rounded-xl border border-rose-500/40 bg-rose-500/10 p-3 text-xs font-semibold text-rose-300 hover:bg-rose-500 hover:text-black transition flex flex-col items-center gap-1"
+              className="rounded-xl border border-rose-500/40 bg-rose-500/10 p-3 text-xs font-semibold text-rose-300 hover:bg-rose-500 hover:text-black transition flex flex-col items-center gap-1 transform active:scale-95"
             >
               <span>🧵 Tenun Kain Ulos</span>
               <span className="text-[10px] text-white/50">+1 Ulos (+10 Trust)</span>
@@ -177,7 +206,7 @@ export default function PlaySection() {
 
             <button
               onClick={upgradeTownHall}
-              className="rounded-xl border border-amber-400 bg-amber-500 p-3 text-xs font-bold text-black hover:bg-amber-400 transition flex flex-col items-center gap-1 shadow-lg shadow-amber-500/20"
+              className="rounded-xl border border-amber-400 bg-amber-500 p-3 text-xs font-bold text-black hover:bg-amber-400 transition flex flex-col items-center gap-1 shadow-lg shadow-amber-500/20 transform active:scale-95"
             >
               <span>🏛️ Upgrade Ruma Bolon</span>
               <span className="text-[10px] text-black/70">Butuh 40 Kayu & 40 Pangan</span>
